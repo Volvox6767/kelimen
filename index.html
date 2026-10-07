@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>kelimen — günlük Türkçe kelime bulmacası</title>
+<meta name="description" content="Günde bir kelime. 5 harf, 6 deneme. Sonucunu emoji ile paylaş. Tek HTML dosyası, çevrimdışı çalışır, hiçbir veri gönderilmez.">
+<style>
+:root{
+  --bg:#121213;--fg:#f0f0f0;--gray:#3a3a3c;--line:#565758;
+  --green:#538d4e;--yellow:#b59f3b;--sub:#8f8f92;--key:#818384;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:'Segoe UI',system-ui,-apple-system,'Helvetica Neue',Arial,sans-serif;
+  background:var(--bg);color:var(--fg);
+  display:flex;flex-direction:column;align-items:center;
+  -webkit-tap-highlight-color:transparent;user-select:none;touch-action:manipulation;
+}
+header{width:100%;max-width:500px;display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--line)}
+header h1{font-size:22px;font-weight:800;letter-spacing:.5px}
+header .credit{font-size:10px;color:var(--sub);text-align:right;line-height:1.3}
+header .credit a{color:var(--sub);text-decoration:none}
+.hdr-actions{display:flex;gap:8px}
+.icon-btn{background:none;border:1px solid var(--line);color:var(--fg);border-radius:8px;width:34px;height:34px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.icon-btn:active{background:var(--gray)}
+#board{display:grid;grid-template-rows:repeat(6,1fr);gap:5px;margin-top:14px;padding:8px 0}
+.row{display:grid;grid-template-columns:repeat(5,1fr);gap:5px}
+.tile{width:58px;height:58px;border:2px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:700;text-transform:uppercase}
+.tile.filled{border-color:var(--key);animation:pop .12s}
+.tile.correct{background:var(--green);border-color:var(--green);color:#fff}
+.tile.present{background:var(--yellow);border-color:var(--yellow);color:#fff}
+.tile.absent{background:var(--gray);border-color:var(--gray);color:#fff}
+.tile.hinted{border-color:var(--yellow);border-style:dashed}
+.tile.reveal{animation:flip .5s}
+@keyframes pop{0%{transform:scale(1)}50%{transform:scale(1.06)}100%{transform:scale(1)}}
+@keyframes flip{0%{transform:rotateX(0)}50%{transform:rotateX(90deg)}100%{transform:rotateX(0)}}
+@keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+.shake{animation:shake .4s}
+#hintline{font-size:12px;color:var(--sub);text-align:center;margin:6px 0 0}
+#keyboard{margin-top:auto;padding:10px 4px 16px;width:100%;max-width:500px}
+.krow{display:flex;justify-content:center;gap:5px;margin-bottom:7px}
+.key{background:var(--key);color:#fff;border:none;border-radius:5px;height:52px;min-width:0;padding:0 2px;font-size:14px;font-weight:700;cursor:pointer;text-transform:uppercase;flex:1 1 0;max-width:none}
+.key.wide{flex:1.55 1 0;font-size:10px}
+.key.correct{background:var(--green)}
+.key.present{background:var(--yellow)}
+.key.absent{background:var(--gray);opacity:.55}
+.key:active{opacity:.75}
+#toast{position:fixed;top:80px;left:50%;transform:translateX(-50%);background:#f0f0f0;color:#121213;font-weight:700;padding:10px 18px;border-radius:8px;opacity:0;pointer-events:none;transition:opacity .25s;z-index:50;white-space:nowrap;max-width:94vw;overflow:hidden;text-overflow:ellipsis}
+#toast.show{opacity:1}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);display:none;align-items:center;justify-content:center;z-index:100;padding:20px}
+.overlay.show{display:flex}
+.panel{background:var(--bg);border:1px solid var(--line);border-radius:14px;max-width:360px;width:100%;padding:22px;text-align:center}
+.panel h2{font-size:20px;margin-bottom:8px}
+.panel .stats{display:flex;justify-content:space-around;margin:14px 0}
+.panel .stat b{font-size:22px;display:block}
+.panel .stat span{font-size:10px;color:var(--sub)}
+.panel pre{font-size:24px;line-height:1.2;margin:10px 0;background:#1a1a1c;border:1px solid var(--line);border-radius:10px;padding:12px}
+.btn{background:var(--green);color:#fff;border:none;border-radius:8px;width:100%;padding:13px;font-size:15px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn:active{opacity:.85}
+.btn.ghost{background:none;border:1px solid var(--line);margin-top:9px;font-weight:600}
+footer{font-size:10px;color:var(--sub);text-align:center;padding:6px 0 10px}
+footer a{color:var(--sub)}
+@media(max-width:400px){.tile{width:50px;height:50px;font-size:26px}}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>kelimen</h1>
+    <div class="credit">by Ahmet Gedik<br><a href="https://www.instagram.com/ahmetgedik67" target="_blank" rel="noopener">instagram.com/ahmetgedik67</a></div>
+  </div>
+  <div class="hdr-actions">
+    <button class="icon-btn" id="btnHelp" title="Nasıl oynanır / How to play" aria-label="yardım">?</button>
+    <button class="icon-btn" id="btnStats" title="İstatistik / Statistics" aria-label="istatistik">📊</button>
+  </div>
+</header>
+
+<div id="board"></div>
+<div id="hintline">5 harf · 6 deneme · günde bir kelime · EN: one word a day</div>
+<div id="keyboard"></div>
+<div id="toast" role="status"></div>
+
+<div class="overlay" id="helpOverlay">
+  <div class="panel">
+    <h2>Nasıl oynanır? <span style="color:var(--sub);font-size:13px">(How to play)</span></h2>
+    <p style="font-size:14px;line-height:1.7;margin:10px 0;text-align:left">
+    Gizli <b>5 harfli Türkçe kelimeyi</b> 6 denemede bul.<br>
+    🟩 doğru harf, doğru yerde<br>
+    🟨 harf var, yanlış yerde<br>
+    ⬜ harf kelimede yok<br><br>
+    <span style="color:var(--sub)">EN: guess the hidden 5-letter Turkish word in 6 tries.<br>New word every day. One hint per day — press 💡.</span></p>
+    <button class="btn" onclick="document.getElementById('helpOverlay').classList.remove('show')">Anladım / Got it</button>
+  </div>
+</div>
+
+<div class="overlay" id="statsOverlay">
+  <div class="panel">
+    <h2>İstatistik <span style="color:var(--sub);font-size:13px">(Statistics)</span></h2>
+    <div class="stats">
+      <div class="stat"><b id="sPlayed">0</b><span>oynanan<br>played</span></div>
+      <div class="stat"><b id="sWin">0</b><span>% kazanma<br>win %</span></div>
+      <div class="stat"><b id="sStreak">0</b><span>seri<br>streak</span></div>
+    </div>
+    <pre id="shareGrid"></pre>
+    <div style="font-size:12px;color:var(--sub);margin-bottom:8px" id="resultLine"></div>
+    <button class="btn" id="btnShare">📋 Sonucu kopyala / Copy result</button>
+    <button class="btn ghost" onclick="document.getElementById('statsOverlay').classList.remove('show')">Kapat / Close</button>
+  </div>
+</div>
+
+<footer>made with ❤ by <a href="https://www.instagram.com/ahmetgedik67" target="_blank" rel="noopener">Ahmet Gedik</a> · offline · no data sent · tek dosya / single file</footer>
+
+<script>
+'use strict';
+/* =====kelimen — günlük Türkçe kelime bulmacası =====
+   Tek dosya, offline, localStorage. by Ahmet Gedik — instagram.com/ahmetgedik67 */
+const RAW = [
+"ampul","anket","akşam","altın","ambar","araba","artık","aygıt","azlık","aslan","aroma","aynıa","adres","albüm","apart","aptal","asans","asker","atard","atlet","atomu","atraf","avici","avize","avlığ",
+"bahçe","bahar","bakır","bakan","balık","balon","barut","basit","bedel","belki","beyaz","beyin","biber","bilge","bilim","bilet","bitki","boğaz","bomba","boyun","börek","bulut","buzlu","bütçe","badem","bakış","bakla","balko","bantı","baraj","barda","basma","basto","batan","batık","batma","bayat","baygı","bebek","bekle","belge","bello",
+"ceket","cephe","cevap","cezve","civar","çakal","çakıl","çamur","çatal","çayır","cümle","çilek","çiçek","çorap","çorba","çarşı","çırak",
+"dakka","dalga","damla","defne","deniz","demir","derin","diken","dilek","dolap","döviz","duman","duvar","duyum","dünya","düzen",
+"ekmek","elmas","emlak","ergen","erdem","erkek","etkin","evlat","evren",
+"falcı","fasıl","fener","fırın","fisto","futbo","gazoz","geniş","gitar","göbek","gölge","görgü","gurur","gübre","güneş","güveç","güven","güzel",
+"haber","hakim","hamam","hamle","hamur","hangi","hapis","hasat","hamsi","havlu","havuz","hayal","hayır","hedef","hisse","horoz","hırka","hurma","huzur","hücum","ikile",
+"ileri","ilkel","incir","insan","irade","irfan","iplik","ırmak","israf","iştah","izole",
+"jeton","jokey",
+"kabak","kadın","kafes","kağıt","kahve","kalem","kalıp","kanat","kanıt","kapak","karar","karga","karın","kasap","kaşık","katil","kavun","kayak","kayıt","kazık","kazma","keder","keman","kemer","kılıç","kilit","kimse","kiraz","kitap","kolay","komik","konak","korku","koşul","kovan","koyun",
+"köfte","köpük","köpek","köprü","kulak","kulüp","kumar","kupon","kural","kuşak","kusur","kutup","küçük","kürek","kuzen",
+"lamba","limon","lokma","lodos",
+"mantı","martı","masal","maske","mayın","mayıs","mazot","mekan","melek","memur","merak","mesaj","metin","midye","minik","mimar","mısır","miras","miyop","modem","moral","motor","mutlu","müjde","mühür","müzik",
+"nabız","nazar","nazik","nefes","nehir","nesil","nesne","nezle","nikah","nisan","noter","nüfus","nutuk",
+"ölçek","ördek","örnek",
+"panel","parça","pasta","pazar","pençe","perde","pilav","pilot","pınar","polis","posta",
+"radyo","resim","ritim","roman",
+"sabah","sabun","sakal","sakız","salon","salça","sanat","sapan","sarma","savaş","sayfa","sebze","sekiz","serçe","sergi","sevda","sığır","sıcak","simit","sınıf","sınav","soğan","sokak","soluk","somut","sorun","soyut","sözcü","susam","süper","şahin","şamar","şapka","şarkı","şeker","şeref","şifre","şimdi","şoför","şüphe",
+"tabak","tabii","takım","tarih","tarım","tavan","tavla","tavuk","tekel","tembe","temiz","tenis","tepsi","teori","terim","terzi","tokat","topal","torba","tuhaf","tufan","tümce","tütün","tuzak","türbe","tuval",
+"unvan","usulu","uygun",
+"vagon","vakit","valiz","vatan","vezne","virüs","viski","vurgu",
+"yaban","yamaç","yatak","yapım","yazar","yemin","yeşil","yılan","yiğit","yolcu","yonca","yufka","yudum","yürek",
+"zafer","zaman","zarar","zarif","zayıf","zehir","zurna"
+];
+const TR5 = /^[abcçdefgğhıijklmnoöprsştuüvyz]{5}$/;
+const WORDS = Array.from(new Set(RAW.filter(w => TR5.test(w))));
+const N = WORDS.length;
+
+/* ----daily answer ---- */
+const EPOCH = Date.UTC(2026, 0, 1);
+const DAY_NO = Math.floor((Date.now() - EPOCH) / 86400000) + 1;
+function dayIndex() {
+  const s = "kelimen-v1-" + DAY_NO; let h = 0;
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
+  return h % N;
+}
+const ANSWER = WORDS[dayIndex()];
+
+/* ----storage ---- */
+const store = {
+  get(k, d) { try { const v = localStorage.getItem("kelimen_" + k); return v === null ? d : JSON.parse(v); } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem("kelimen_" + k, JSON.stringify(v)); } catch (e) {} }
+};
+const dayKey = "day" + DAY_NO;
+let state = store.get(dayKey, null);
+if (!state || state.answer !== ANSWER || !Array.isArray(state.rows)) {
+  state = { answer: ANSWER, rows: [], done: false, won: false, hint: null };
+}
+if (!state.rows.length) state.rows.push(""); /* aktif tampon her zaman hazır */
+
+/* ----board ---- */
+const boardEl = document.getElementById("board");
+const rows = [];
+for (let r = 0; r < 6; r++) {
+  const rd = document.createElement("div"); rd.className = "row";
+  const tiles = [];
+  for (let c = 0; c < 5; c++) { const t = document.createElement("div"); t.className = "tile"; rd.appendChild(t); tiles.push(t); }
+  boardEl.appendChild(rd); rows.push(tiles);
+}
+
+/* ----keyboard ---- */
+const kbEl = document.getElementById("keyboard");
+const kkeys = {};
+function addKey(rowDiv, label, cls, action) {
+  const b = document.createElement("button");
+  b.className = "key" + (cls ? " " + cls : ""); b.textContent = label;
+  b.onclick = action; rowDiv.appendChild(b); return b;
+}
+function addRow() { const d = document.createElement("div"); d.className = "krow"; kbEl.appendChild(d); return d; }
+const r1 = addRow();
+"qwertyuıop".split("").forEach(ch => { kkeys[ch] = addKey(r1, ch, "", () => onKey(ch)); });
+const r2 = addRow();
+"asdfghjklşi".split("").forEach(ch => { kkeys[ch] = addKey(r2, ch, "", () => onKey(ch)); });
+const r3 = addRow();
+addKey(r3, "ENTER", "wide", () => onKey("ENTER"));
+addKey(r3, "💡", "wide", () => onKey("HINT"));
+"zxcvbnmöçü".split("").forEach(ch => { kkeys[ch] = addKey(r3, ch, "", () => onKey(ch)); });
+addKey(r3, "⌫", "wide", () => onKey("BACK"));
+
+/* ----game logic ---- */
+function grade(guess, answer) {
+  const res = Array(5).fill("absent");
+  const rem = {};
+  for (let i = 0; i < 5; i++) {
+    if (guess[i] === answer[i]) res[i] = "correct";
+    else rem[answer[i]] = (rem[answer[i]] || 0) + 1;
+  }
+  for (let i = 0; i < 5; i++) {
+    if (res[i] !== "correct" && rem[guess[i]] > 0) { res[i] = "present"; rem[guess[i]]--; }
+  }
+  return res;
+}
+const kbState = {};
+function paint() {
+  for (let r = 0; r < 6; r++) {
+    const row = state.rows[r] || "";
+    const revealed = r < state.rows.length;
+    const res = revealed ? grade(row, ANSWER) : null;
+    for (let c = 0; c < 5; c++) {
+      const t = rows[r][c];
+      t.className = "tile";
+      if (res) t.classList.add(res[c]);
+      if (row[c]) { t.textContent = row[c]; if (!res) t.classList.add("filled"); }
+      else t.textContent = "";
+    }
+    if (revealed) {
+      for (let c = 0; c < 5; c++) {
+        const ch = row[c], cl = res[c];
+        const old = kbState[ch];
+        if (cl === "correct") kbState[ch] = "correct";
+        else if (cl === "present" && old !== "correct") kbState[ch] = "present";
+        else if (cl === "absent" && !old) kbState[ch] = "absent";
+      }
+    }
+  }
+  Object.keys(kkeys).forEach(ch => { kkeys[ch].className = "key" + (kbState[ch] ? " " + kbState[ch] : ""); });
+  if (typeof state.hint === "number") {
+    rows.forEach(tiles => tiles[state.hint].classList.add("hinted"));
+  }
+  document.getElementById("hintline").textContent =
+    "kelime #" + DAY_NO + " · " + (state.done ? (state.won ? "✔ buldun!" : "bugünkü kelimedeydin") : (6 - state.rows.length) + " deneme kaldı") + " · emoji ile paylaş 📋";
+}
+function activeRow() {
+  /* en son row daima aktif tampondur; 5 harf doluysa submit beklenir */
+  if (state.done) return -1;
+  return Math.max(0, state.rows.length - 1);
+}
+function onKey(k) {
+  if (state.done) return;
+  if (k === "ENTER") return submitGuess();
+  if (k === "HINT") return giveHint();
+  if (k === "BACK") {
+    const r = activeRow(); if (r < 0) return;
+    const g = state.rows[r] || "";
+    if (g.length) { state.rows[r] = g.slice(0, -1); store.set(dayKey, state); paint(); }
+    return;
+  }
+  if (!/^[a-zçğıöşü]$/.test(k)) return;
+  const r = activeRow(); if (r < 0) return;
+  const g = state.rows[r] || "";
+  if (g.length >= 5) return; /* dolu — önce enter beklenir */
+  state.rows[r] = g + k;
+  store.set(dayKey, state);
+  paint();
+}
+function shakeRow(r, msg) {
+  rows[r].forEach(t => t.classList.add("shake"));
+  setTimeout(() => rows[r].forEach(t => t.classList.remove("shake")), 450);
+  toast(msg);
+}
+function submitGuess() {
+  if (state.done) return;
+  const r = state.rows.length - 1;
+  const guess = state.rows[r] || "";
+  if (guess.length < 5) return shakeRow(r, "5 harf gerek / 5 letters needed");
+  if (!WORDS.includes(guess)) return shakeRow(r, "Kelime listede değil / not in word list");
+  const res = grade(guess, ANSWER);
+  if (guess === ANSWER) { state.done = true; state.won = true; }
+  else if (r === 5) { state.done = true; state.won = false; }
+  /* istatistik (gün başına bir kez) */
+  if (state.done && !store.get(dayKey + "_counted", false)) {
+    store.set(dayKey + "_counted", true);
+    stats.played++;
+    if (state.won) {
+      stats.streak = (store.get("lastWinDay", 0) === DAY_NO - 1) ? store.get("winstreak", 0) + 1 : 1;
+      store.set("winstreak", stats.streak);
+      store.set("lastWinDay", DAY_NO);
+      stats.wins++;
+    } else stats.streak = 0;
+    store.set("stats", stats);
+  }
+  if (!state.done) {
+    if (r === state.rows.length - 1) state.rows.push("");
+  }
+  store.set(dayKey, state);
+  /* reveal animasyonu */
+  const rr = r;
+  let delay = 0;
+  for (let c = 0; c < 5; c++) {
+    const t = rows[rr][c];
+    setTimeout(((tt, cl) => () => { tt.className = "tile reveal " + cl; })(t, res[c]), delay);
+    delay += 300;
+  }
+  setTimeout(() => { paint(); if (state.done) showEnd(); }, delay + 250);
+}
+function giveHint() {
+  if (state.done) return toast("Oyun bitti — yarınki kelimeyi bekle 🙂");
+  if (typeof state.hint === "number") return toast(state.hint + 1 + ". harf açıklandı: " + ANSWER[state.hint].toUpperCase());
+  const idx = Math.floor(Math.random() * 5);
+  state.hint = idx;
+  store.set(dayKey, state); paint();
+  toast("💡 İpucu / hint → " + (idx + 1) + ". harf: " + ANSWER[idx].toUpperCase());
+}
+
+/* ----share & end screen ---- */
+const emojis = r => grade(state.rows[r], ANSWER).map(c => c === "correct" ? "🟩" : c === "present" ? "🟨" : "⬜").join("");
+function shareText() {
+  const done = state.rows.filter(g => g && g.length === 5);
+  return "kelimen #" + DAY_NO + " — " + (state.won ? done.length + "/6" : "X/6") + "\n\n" +
+    done.map(g => emojis(state.rows.indexOf(g))).join("\n") +
+    "\n\nkelimen: 5 harf, günde bir kelime.\nby Ahmet Gedik — instagram.com/ahmetgedik67";
+}
+let stats = store.get("stats", { played: 0, wins: 0, streak: 0 });
+function refreshStats() {
+  document.getElementById("sPlayed").textContent = stats.played;
+  document.getElementById("sWin").textContent = stats.played ? Math.round(stats.wins / stats.played * 100) : 0;
+  document.getElementById("sStreak").textContent = stats.streak;
+}
+function showEnd() {
+  refreshStats();
+  const grid = document.getElementById("shareGrid");
+  const done = state.rows.filter(g => g && g.length === 5);
+  grid.textContent = done.map(g => emojis(state.rows.indexOf(g))).join("\n");
+  document.getElementById("resultLine").textContent = state.won
+    ? "🎉 Doğru! " + state.rows.length + " denemede buldun. / correct!"
+    : "😢 Bugünkü kelime: " + ANSWER.toUpperCase();
+  setTimeout(() => document.getElementById("statsOverlay").classList.add("show"), 300);
+}
+function toast(msg, ms) {
+  const t = document.getElementById("toast");
+  t.textContent = msg; t.classList.add("show");
+  clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove("show"), ms || 1800);
+}
+document.getElementById("btnShare").onclick = function () {
+  const txt = shareText();
+  const done = () => toast("📋 Kopyalandı! Yapıştır & paylaş / copied, paste & share");
+  if (navigator.share) { navigator.share({ text: txt }).catch(() => copyTxt(txt, done)); }
+  else copyTxt(txt, done);
+};
+function copyTxt(t, cb) {
+  const fb = () => {
+    const ta = document.createElement("textarea");
+    ta.value = t; document.body.appendChild(ta); ta.select();
+    try { document.execCommand("copy"); cb(); } catch (e) { toast("Kopyalanamadı — ekran görüntüsü al 🙂"); }
+    document.body.removeChild(ta);
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(cb, fb);
+  else fb();
+}
+document.getElementById("btnHelp").onclick = () => document.getElementById("helpOverlay").classList.add("show");
+document.getElementById("btnStats").onclick = () => {
+  refreshStats();
+  const grid = document.getElementById("shareGrid");
+  const done = state.rows.filter(g => g && g.length === 5);
+  grid.textContent = done.length ? done.map(g => emojis(state.rows.indexOf(g))).join("\n") : "🎯 oyna bakalım";
+  document.getElementById("resultLine").textContent = state.done ? (state.won ? "🎉 buldun / solved" : "kelime: " + ANSWER.toUpperCase()) : "";
+  document.getElementById("statsOverlay").classList.add("show");
+};
+
+/* ----keyboard input ---- */
+window.addEventListener("keydown", e => {
+  if (document.querySelector(".overlay.show")) return;
+  if (e.key === "Enter") onKey("ENTER");
+  else if (e.key === "Backspace") onKey("BACK");
+  else if (/^[a-zA-ZçğıöşüÇĞİÖŞÜ]$/.test(e.key)) onKey(e.key.toLowerCase());
+});
+paint();
+</script>
+</body>
+</html>
