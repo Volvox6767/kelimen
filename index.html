@@ -118,33 +118,125 @@ footer a{color:var(--sub)}
 /* =====kelimen — günlük Türkçe kelime bulmacası =====
    Tek dosya, offline, localStorage. by Ahmet Gedik — instagram.com/ahmetgedik67 */
 const RAW = [
-"ampul","anket","akşam","altın","ambar","araba","artık","aygıt","azlık","aslan","aroma","aynıa","adres","albüm","apart","aptal","asans","asker","atard","atlet","atomu","atraf","avici","avize","avlığ",
-"bahçe","bahar","bakır","bakan","balık","balon","barut","basit","bedel","belki","beyaz","beyin","biber","bilge","bilim","bilet","bitki","boğaz","bomba","boyun","börek","bulut","buzlu","bütçe","badem","bakış","bakla","balko","bantı","baraj","barda","basma","basto","batan","batık","batma","bayat","baygı","bebek","bekle","belge","bello",
-"ceket","cephe","cevap","cezve","civar","çakal","çakıl","çamur","çatal","çayır","cümle","çilek","çiçek","çorap","çorba","çarşı","çırak",
-"dakka","dalga","damla","defne","deniz","demir","derin","diken","dilek","dolap","döviz","duman","duvar","duyum","dünya","düzen",
-"ekmek","elmas","emlak","ergen","erdem","erkek","etkin","evlat","evren",
-"falcı","fasıl","fener","fırın","fisto","futbo","gazoz","geniş","gitar","göbek","gölge","görgü","gurur","gübre","güneş","güveç","güven","güzel",
-"haber","hakim","hamam","hamle","hamur","hangi","hapis","hasat","hamsi","havlu","havuz","hayal","hayır","hedef","hisse","horoz","hırka","hurma","huzur","hücum","ikile",
-"ileri","ilkel","incir","insan","irade","irfan","iplik","ırmak","israf","iştah","izole",
-"jeton","jokey",
-"kabak","kadın","kafes","kağıt","kahve","kalem","kalıp","kanat","kanıt","kapak","karar","karga","karın","kasap","kaşık","katil","kavun","kayak","kayıt","kazık","kazma","keder","keman","kemer","kılıç","kilit","kimse","kiraz","kitap","kolay","komik","konak","korku","koşul","kovan","koyun",
-"köfte","köpük","köpek","köprü","kulak","kulüp","kumar","kupon","kural","kuşak","kusur","kutup","küçük","kürek","kuzen",
-"lamba","limon","lokma","lodos",
-"mantı","martı","masal","maske","mayın","mayıs","mazot","mekan","melek","memur","merak","mesaj","metin","midye","minik","mimar","mısır","miras","miyop","modem","moral","motor","mutlu","müjde","mühür","müzik",
-"nabız","nazar","nazik","nefes","nehir","nesil","nesne","nezle","nikah","nisan","noter","nüfus","nutuk",
-"ölçek","ördek","örnek",
-"panel","parça","pasta","pazar","pençe","perde","pilav","pilot","pınar","polis","posta",
-"radyo","resim","ritim","roman",
-"sabah","sabun","sakal","sakız","salon","salça","sanat","sapan","sarma","savaş","sayfa","sebze","sekiz","serçe","sergi","sevda","sığır","sıcak","simit","sınıf","sınav","soğan","sokak","soluk","somut","sorun","soyut","sözcü","susam","süper","şahin","şamar","şapka","şarkı","şeker","şeref","şifre","şimdi","şoför","şüphe",
-"tabak","tabii","takım","tarih","tarım","tavan","tavla","tavuk","tekel","tembe","temiz","tenis","tepsi","teori","terim","terzi","tokat","topal","torba","tuhaf","tufan","tümce","tütün","tuzak","türbe","tuval",
-"unvan","usulu","uygun",
-"vagon","vakit","valiz","vatan","vezne","virüs","viski","vurgu",
-"yaban","yamaç","yatak","yapım","yazar","yemin","yeşil","yılan","yiğit","yolcu","yonca","yufka","yudum","yürek",
-"zafer","zaman","zarar","zarif","zayıf","zehir","zurna"
+"adres","akşam","albüm","altın","ambar","ampul","anket","apart","aptal","araba","aroma","artık",
+"asans","asker","aslan","atard","atlet","atomu","atraf","avici","avize","avlığ","aygıt","aynıa",
+"azlık","badem","bahar","bahçe","bakan","bakla","bakır","bakış","balko","balon","balık","bantı",
+"baraj","barda","barut","basit","basma","basto","batan","batma","batık","bayat","baygı","bebek",
+"bedel","bekle","belge","belki","bello","beyaz","beyin","biber","bilet","bilge","bilim","bitki",
+"bomba","boyun","boğaz","bulut","buzlu","börek","bütçe","ceket","cephe","cevap","cezve","civar",
+"cümle","dakka","dalga","damla","defne","demir","deniz","derin","diken","dilek","dolap","duman",
+"duvar","duyum","döviz","dünya","düzen","ekmek","elmas","emlak","erdem","ergen","erkek","etkin",
+"evlat","evren","falcı","fasıl","fener","fisto","futbo","fırın","gazoz","geniş","gitar","gurur",
+"göbek","gölge","görgü","gübre","güneş","güven","güveç","güzel","haber","hakim","hamam","hamle",
+"hamsi","hamur","hangi","hapis","hasat","havlu","havuz","hayal","hayır","hedef","hisse","horoz",
+"hurma","huzur","hücum","hırka","ikile","ileri","ilkel","incir","insan","iplik","irade","irfan",
+"israf","izole","iştah","jeton","jokey","kabak","kadın","kafes","kahve","kalem","kalıp","kanat",
+"kanıt","kapak","karar","karga","karın","kasap","katil","kavun","kayak","kayıt","kazma","kazık",
+"kağıt","kaşık","keder","keman","kemer","kilit","kimse","kiraz","kitap","kolay","komik","konak",
+"korku","kovan","koyun","koşul","kulak","kulüp","kumar","kupon","kural","kusur","kutup","kuzen",
+"kuşak","köfte","köpek","köprü","köpük","kürek","küçük","kılıç","lamba","limon","lodos","lokma",
+"mantı","martı","masal","maske","mayın","mayıs","mazot","mekan","melek","memur","merak","mesaj",
+"metin","midye","mimar","minik","miras","miyop","modem","moral","motor","mutlu","mühür","müjde",
+"müzik","mısır","nabız","nazar","nazik","nefes","nehir","nesil","nesne","nezle","nikah","nisan",
+"noter","nutuk","nüfus","panel","parça","pasta","pazar","pençe","perde","pilav","pilot","polis",
+"posta","pınar","radyo","resim","ritim","roman","sabah","sabun","sakal","sakız","salon","salça",
+"sanat","sapan","sarma","savaş","sayfa","sebze","sekiz","sergi","serçe","sevda","simit","sokak",
+"soluk","somut","sorun","soyut","soğan","susam","sözcü","süper","sıcak","sınav","sınıf","sığır",
+"tabak","tabii","takım","tarih","tarım","tavan","tavla","tavuk","tekel","tembe","temiz","tenis",
+"teori","tepsi","terim","terzi","tokat","topal","torba","tufan","tuhaf","tuval","tuzak","tümce",
+"türbe","tütün","unvan","usulu","uygun","vagon","vakit","valiz","vatan","vezne","virüs","viski",
+"vurgu","yaban","yamaç","yapım","yatak","yazar","yemin","yeşil","yiğit","yolcu","yonca","yudum",
+"yufka","yürek","yılan","zafer","zaman","zarar","zarif","zayıf","zehir","zurna","çakal","çakıl",
+"çamur","çarşı","çatal","çayır","çilek","çiçek","çorap","çorba","çırak","ölçek","ördek","örnek",
+"ırmak","şahin","şamar","şapka","şarkı","şeker","şeref","şifre","şimdi","şoför","şüphe","adanı",
+"ahtar","ailem","akars","akden","aklım","aklıs","akman","aksam","aktif","akust","alayc","alayi",
+"alazı","alcak","aleve","algun","algın","alkan","alkol","alkış","allah","allık","almak","alnım",
+"alpas","altay","amans","amcas","amips","anane","anaya","anboo","andız","anemi","anily","ankar",
+"anlat","anlay","anons","ansız","antik","antlı","anızı","apacı","apayr","aptes","aracı","arala",
+"aralı","arama","araça","arbgı","ardık","arena","arifo","arkan","arkas","arkın","arsız","artar",
+"artma","artış","aruka","arzul","arılı","arıza","asale","asart","asena","asils","asist","asklı",
+"aslım","asmak","asort","astar","asıla","asıls","asılı","atama","atatt","atlım","atmac","atmat",
+"attığ","atulk","atışt","audia","avang","avara","avcıs","averı","avlad","avmak","avnet","avrat",
+"avunç","ayalm","ayart","ayazı","ayber","aybus","aycıl","aydın","aydıp","aygaz","aygut","ayibe",
+"aylac","aylak","aylar","aylas","aynaz","aynen","aynet","aynur","ayran","aysev","aysun","aytan",
+"aytun","ayvac","ayılı","ayıpt","ayırd","ayırl","ayısa","ayıva","azald","azalm","azams","azate",
+"azbız","azely","azgan","azıms","azınt","azıtt","ağacı","ağlas","ağned","ağrus","ağılı","ağına",
+"ağırl","ağızı","aşama","aşevi","aşina","aşire","aşkar","aşkla","aşkın","aşmas","aştag","aşuba",
+"aşure","aşçba","aşıcı","aşılı","aşınd","aşıya","aşığa","badil","bagaj","bahan","bahis","bahun",
+"bakay","bakli","baklı","bakma","balan","balat","balın","balığ","bambu","bando","banka","banko",
+"banlı","barak","barat","barbı","barem","barko","barok","barrı","barın","basen","baskı","bastı",
+"basın","batar","batgı","batlı","baton","bayar","baybo","bayka","bazal","bazen","bağcı","bağlı",
+"bağıl","bağır","bağış","başag","başak","başgı","başlı","başta","başçı","beber","bediz","behen",
+"bekar","bekas","bekta","bekçi","belam","belav","belci","belde","belem","beles","belir","bella",
+"belli","belmo","belur","belül","bembu","bembü","bemol","benek","benim","beniz","benli","benni",
+"bennu","berat","berek","beril","beser","besin","besle","besli","besme","beste","betar","betik",
+"betim","beton","beyit","beyli","beyza","bezbe","bezdi","bezed","bezem","bezir","bezme","beçin",
+"bibli","bican","bider","bides","bidos","bidık","bihab","bihot","bilal","bilen","bilfe","bilgi",
+"binde","bindi","biraz","birli","biser","bisey","bitek","bitem","bitik","bitim","bitir","bitiş",
+"bitli","bitra","bizce","bizde","bizim","biçim","bişey","bjeon","bocal","bocur","bodur","bogan",
+"bohum","bohça","bokağ","boklu","bolca","bolur","boraz","borlu","bosun","botla","boylu","boynu",
+"bozca","bozuk","bozul","boğma","bravo","bronş","buben","budak","budur","buhur","bulak","bulan",
+"bulgu","buluş","bulık","bumbu","bunut","burak","burbu","burka","burla","burma","buruk","butik",
+"buzul","buçuk","buğul","böyle","büzük","büşra","bıcak","bıdık","bıkkı","bıkra","bıktı","bıkız",
+"bıyık","bıçak","canlı","cansu","canım","capul","capyo","cebin","cebir","celbi","celil","cello",
+"cemal","cemil","cemit","cenge","cerah","cesar","cesur","cetin","cevah","ceval","cevde","ceviz",
+"cezaa","cezal","cezaı","cezir","cimri","cinay","cinli","cinni","cipso","cirit","cisim","coban",
+"coklu","colak","coplu","corak","corap","corba","coruh","coşar","coşku","coşma","cubuk","cukka",
+"culha","cuncu","cunda","cunoş","curuf","cusha","cötur","cürüm","cüzam","cılız","cıvıl","cızma",
+"cızıl","sabık","sabır","sadık","safha","sahil","sahip","sahne","sahte","sahur","saklı","saksı",
+"sakın","salda","salgı","salim","salma","saman","sanem","sanır","sapak","sapık","saray","sarto",
+"sarıf","sarık","satış","savak","savcı","savun","saygı","sayha","sayım","sazan","sağcı","sağrı",
+"sağım","sedir","sefer","sefil","segah","sehim","sehpa","sekme","selam","selvi","semiz","sened",
+"sepet","sepya","serce","seril","serin","servi","sesli","sevgi","sevil","sevip","sevis","sevkı",
+"seyir","seyis","sezan","sezen","seziş","seçim","sirke","sivri","siyah","siyam","soket","solar",
+"somun","sonra","sonuç","sorar","sorba","soslu","soğuk","suare","subay","sudan","sufle","suhak",
+"sukut","sulan","suley","suluk","sumak","sunal","sunar","sunit","surat","susad","susan","susuz",
+"sutun","suyun","suçlu","süjet","sükse","sükut","süpür","sürat","sürme","sürün","sürüs","süslü",
+"sütaş","sütle","sütlü","sütun","süvar","süzme","süzül","sıfır","sıkma","sıkça","sıkıs","sıkış",
+"sınır","sırma","sırça","sırık","sıska","sızgı","taban","tablo","taciz","tahta","talas","talep",
+"talih","tamam","tanju","tanti","tanık","tanım","tanış","tarak","tarka","tarot","tarık","tayfa",
+"tayın","tefeş","tekne","temas","temel","tenha","terek","terfi","tesis","testi","teyit","teyze",
+"turna","tuzağ","tünel","tüpçü","türkü","tütsü","tıbbi","tıkan","tıkış","tınaz","tıpkı","tıraş",
+"uyarı","uzman","vahşi","vamık","varak","varan","varil","varol","varoş","varsa","vasat","vasıf",
+"vazih","vedat","vefat","vegil","venüs","verem","vergi","verim","veriş","vezir","vurup","vuruş",
+"vıcık","yahni","yakim","yakut","yakış","yalan","yalpa","yaltı","yalçı","yalın","yaman","yamuk",
+"yanak","yanar","yanda","yansı","yanık","yanıt","yanış","yapay","yapma","yapış","yarak","yaram",
+"yarca","yarlı","yarma","yarum","yarım","yarış","yasak","yasal","yasam","yasin","yasla","yaslı",
+"yatay","yatsı","yatım","yavaş","yavru","yavuz","yayga","yaygı","yayla","yazan","yazağ","yazgı",
+"yazım","yazın","yazış","yağcı","yağdu","yağlı","yağuk","yağış","yaşam","yaşar","yaşca","yaşlı",
+"yaşta","yaşça","çabuk","çadır","çakab","çakar","çakma","çakut","çakça","çakır","çakış","çalma",
+"çaltı","çalık","çalım","çalıt","çalış","çamça","çamçe","çanak","çanlı","çapra","çaput","çarak",
+"çarlı","çarpı","çarık","çatma","çatış","çavlı","çavus","çayda","çayız","çağan","çağda","çağma",
+"çağrı","çekal","çekap","çekas","çekce","çekik","çekil","çekin","çekir","çekiç","çekme",
 ];
 const TR5 = /^[abcçdefgğhıijklmnoöprsştuüvyz]{5}$/;
 const WORDS = Array.from(new Set(RAW.filter(w => TR5.test(w))));
 const N = WORDS.length;
+
+/* ----zorluk derecesi / difficulty rating ----
+   Nadir harfler (ğ, ş, ç, j, f, h, v, z) ve sesli-harf oranı temel alınır.
+   easy: yaygın harfler + çift sesli dengesi; hard: nadir harf yoğunluğu yüksek. */
+const RARE_LETTERS = "ğşçjfhvzâ";
+const COMMON_VOWELS = "aeiı";
+function difficultyOf(w) {
+  let rare = 0;
+  for (const ch of w) if (RARE_LETTERS.includes(ch)) rare++;
+  const vowels = [...w].filter(c => "aeıioöü".includes(c)).length;
+  const dup = new Set(w).size < 5; // tekrarlayan harf varsa biraz zorlaşır
+  let score = rare * 1.5 + (5 - vowels) * 1.2 + (dup ? 1 : 0);
+  if (score <= 4.5) return "easy";    // kolay: sesli zengini, nadir harf az
+  if (score <= 7) return "medium";    // orta
+  return "hard";                       // zor: nadir harfler, tekrarlar
+}
+const DIFF_LABEL = {
+  easy:   { tr: "kolay", en: "easy",   color: "#34c98e", emoji: "🟢" },
+  medium: { tr: "orta",  en: "medium", color: "#f5b83d", emoji: "🟡" },
+  hard:   { tr: "zor",   en: "hard",   color: "#f2555a", emoji: "🔴" }
+};
+function diffTag(w) {
+  const d = DIFF_LABEL[difficultyOf(w)];
+  return `<span style="color:${d.color};font-weight:700">${d.emoji} ${d.tr}/${d.en}</span>`;
+}
 
 /* ----daily answer ---- */
 const EPOCH = Date.UTC(2026, 0, 1);
@@ -258,8 +350,8 @@ function paint() {
   if (typeof state.hint === "number") {
     rows.forEach(tiles => tiles[state.hint].classList.add("hinted"));
   }
-  document.getElementById("hintline").textContent =
-    (IS_CHALLENGE ? "⚔️ arkadaşının kelimesi · " : "kelime #" + DAY_NO + " · ") +
+  document.getElementById("hintline").innerHTML =
+    (IS_CHALLENGE ? "⚔️ arkadaşının kelimesi" : "kelime #" + DAY_NO + " " + diffTag(ANSWER)) + " · " +
     (state.done ? (state.won ? "✔ buldun!" : "bugünkü kelime: " + ANSWER.toUpperCase()) : (state.rows.length + 1) + ". denemedesin / try " + (state.rows.length + 1) + " of 6") +
     (IS_CHALLENGE ? "" : " · emoji ile paylaş 📋");
 }
