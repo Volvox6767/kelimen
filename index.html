@@ -79,6 +79,7 @@ footer a{color:var(--sub)}
 
 <div id="board"></div>
 <div id="hintline">5 harf · 6 deneme · günde bir kelime · EN: one word a day</div>
+<div id="chbanner" style="display:none;font-size:12px;text-align:center;margin-top:4px"><a href="?" id="chback" style="color:var(--sub)">⚔️ meydan okuma modundasın — normal güne dönmek için tıkla / challenge mode — tap for the daily word</a></div>
 <div id="keyboard"></div>
 <div id="toast" role="status"></div>
 
@@ -153,14 +154,36 @@ function dayIndex() {
   for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
   return h % N;
 }
-const ANSWER = WORDS[dayIndex()];
+
+/* ----challenge mode (?word= parametresi) ----
+   Kelime base64(kelimen-<word>-42) ile kodlanır — düz okunamaz,
+   alıcı URL'den cevabı rahatça göremez. Herkes aynı linki paylaşabilir. */
+function encodeChallenge(word) {
+  try { return btoa(unescape(encodeURIComponent("kelimen-" + word + "-42"))).replace(/=+$/, ""); }
+  catch (e) { return null; }
+}
+function decodeChallenge(code) {
+  try {
+    let b = code.replace(/-/g, "+").replace(/_/g, "/");
+    while (b.length % 4) b += "=";
+    const raw = decodeURIComponent(escape(atob(b)));
+    const m = raw.match(/^kelimen-(.+)-42$/);
+    return (m && TR5.test(m[1]) && WORDS.includes(m[1])) ? m[1] : null;
+  } catch (e) { return null; }
+}
+const CH_WORD = (() => {
+  const p = new URLSearchParams(location.search).get("word");
+  return p ? decodeChallenge(p) : null;
+})();
+const ANSWER = CH_WORD || WORDS[dayIndex()];
+const IS_CHALLENGE = !!CH_WORD;
 
 /* ----storage ---- */
 const store = {
   get(k, d) { try { const v = localStorage.getItem("kelimen_" + k); return v === null ? d : JSON.parse(v); } catch (e) { return d; } },
   set(k, v) { try { localStorage.setItem("kelimen_" + k, JSON.stringify(v)); } catch (e) {} }
 };
-const dayKey = "day" + DAY_NO;
+const dayKey = IS_CHALLENGE ? "ch-" + CH_WORD : "day" + DAY_NO;
 let state = store.get(dayKey, null);
 if (!state || state.answer !== ANSWER || !Array.isArray(state.rows) || typeof state.buf !== "string") {
   state = { answer: ANSWER, rows: [], buf: "", done: false, won: false, hint: null };
@@ -236,7 +259,9 @@ function paint() {
     rows.forEach(tiles => tiles[state.hint].classList.add("hinted"));
   }
   document.getElementById("hintline").textContent =
-    "kelime #" + DAY_NO + " · " + (state.done ? (state.won ? "✔ buldun!" : "bugünkü kelime: " + ANSWER.toUpperCase()) : (state.rows.length + 1) + ". denemedesin / try " + (state.rows.length + 1) + " of 6") + " · emoji ile paylaş 📋";
+    (IS_CHALLENGE ? "⚔️ arkadaşının kelimesi · " : "kelime #" + DAY_NO + " · ") +
+    (state.done ? (state.won ? "✔ buldun!" : "bugünkü kelime: " + ANSWER.toUpperCase()) : (state.rows.length + 1) + ". denemedesin / try " + (state.rows.length + 1) + " of 6") +
+    (IS_CHALLENGE ? "" : " · emoji ile paylaş 📋");
 }
 const kbState = {};
 function onKey(k) {
@@ -292,6 +317,7 @@ function submitGuess() {
   setTimeout(() => { paint(); if (state.done) showEnd(); }, delay + 250);
 }
 function giveHint() {
+  if (IS_CHALLENGE) return toast("⚔️ Meydan okumada ipucu yok — tam kazanç ya da hiç! / no hints in challenge mode");
   if (state.done) return toast("Oyun bitti — yarınki kelimeyi bekle 🙂");
   if (typeof state.hint === "number") return toast(state.hint + 1 + ". harf açıklandı: " + ANSWER[state.hint].toUpperCase());
   const idx = Math.floor(Math.random() * 5);
@@ -303,9 +329,25 @@ function giveHint() {
 /* ----share & end screen ---- */
 const emojis = r => grade(state.rows[r], ANSWER).map(c => c === "correct" ? "🟩" : c === "present" ? "🟨" : "⬜").join("");
 function shareText() {
-  return "kelimen #" + DAY_NO + " — " + (state.won ? state.rows.length + "/6" : "X/6") + "\n\n" +
+  const head = IS_CHALLENGE
+    ? "kelimen ⚔️ meydan okuma — " + (state.won ? state.rows.length + "/6" : "X/6")
+    : "kelimen #" + DAY_NO + " — " + (state.won ? state.rows.length + "/6" : "X/6");
+  return head + "\n\n" +
     state.rows.map((_, i) => emojis(i)).join("\n") +
     "\n\nkelimen: 5 harf, günde bir kelime.\nby Ahmet Gedik — instagram.com/ahmetgedik67";
+}
+function challengeLink() {
+  const code = encodeChallenge(ANSWER);
+  return code ? (location.origin + location.pathname + "?word=" + code) : null;
+}
+function shareChallenge() {
+  const link = challengeLink();
+  if (!link) return toast("Link üretilemedi / could not build link");
+  const txt = "⚔️ kelimen meydan okuma!\nBugünkü kelimeyi bulabilir misin? 5 harf, 6 deneme.\n\n" + link +
+    "\n\n(oynayınca sonucunu bana gönder — ama kelimeyi söyleme! 😏)";
+  const done = () => toast("📋 Meydan okuma kopyalandı! Arkadaşına gönder / challenge copied");
+  if (navigator.share) navigator.share({ text: txt }).catch(() => copyTxt(txt, done));
+  else copyTxt(txt, done);
 }
 let stats = store.get("stats", { played: 0, wins: 0, streak: 0 });
 function refreshStats() {
@@ -320,6 +362,19 @@ function showEnd() {
   document.getElementById("resultLine").textContent = state.won
     ? "🎉 Doğru! " + state.rows.length + " denemede buldun. / correct!"
     : "😢 Bugünkü kelime: " + ANSWER.toUpperCase();
+  const btn = document.getElementById("btnShare");
+  if (IS_CHALLENGE) {
+    btn.textContent = "⚔️ Sonucunu gönderene göster / Reply with your result";
+  } else {
+    let c = document.getElementById("btnChallenge");
+    if (!c) {
+      c = document.createElement("button");
+      c.id = "btnChallenge"; c.className = "btn ghost";
+      c.textContent = "⚔️ Arkadaşına meydan okuma gönder / Challenge a friend";
+      c.onclick = shareChallenge;
+      btn.parentNode.insertBefore(c, btn.nextSibling);
+    }
+  }
   setTimeout(() => document.getElementById("statsOverlay").classList.add("show"), 300);
 }
 function toast(msg, ms) {
@@ -359,6 +414,7 @@ window.addEventListener("keydown", e => {
   else if (e.key === "Backspace") onKey("BACK");
   else if (/^[a-zA-ZçğıöşüÇĞİÖŞÜ]$/.test(e.key)) onKey(e.key.toLowerCase());
 });
+if (IS_CHALLENGE) document.getElementById("chbanner").style.display = "";
 paint();
 </script>
 </body>
