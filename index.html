@@ -162,10 +162,9 @@ const store = {
 };
 const dayKey = "day" + DAY_NO;
 let state = store.get(dayKey, null);
-if (!state || state.answer !== ANSWER || !Array.isArray(state.rows)) {
-  state = { answer: ANSWER, rows: [], done: false, won: false, hint: null };
+if (!state || state.answer !== ANSWER || !Array.isArray(state.rows) || typeof state.buf !== "string") {
+  state = { answer: ANSWER, rows: [], buf: "", done: false, won: false, hint: null };
 }
-if (!state.rows.length) state.rows.push(""); /* aktif tampon her zaman hazır */
 
 /* ----board ---- */
 const boardEl = document.getElementById("board");
@@ -209,12 +208,12 @@ function grade(guess, answer) {
   }
   return res;
 }
-const kbState = {};
 function paint() {
   for (let r = 0; r < 6; r++) {
-    const row = state.rows[r] || "";
-    const revealed = r < state.rows.length;
-    const res = revealed ? grade(row, ANSWER) : null;
+    const submitted = r < state.rows.length;
+    const isBuffer = !state.done && r === state.rows.length;
+    const row = submitted ? state.rows[r] : (isBuffer ? state.buf : "");
+    const res = submitted ? grade(row, ANSWER) : null;
     for (let c = 0; c < 5; c++) {
       const t = rows[r][c];
       t.className = "tile";
@@ -222,7 +221,7 @@ function paint() {
       if (row[c]) { t.textContent = row[c]; if (!res) t.classList.add("filled"); }
       else t.textContent = "";
     }
-    if (revealed) {
+    if (submitted) {
       for (let c = 0; c < 5; c++) {
         const ch = row[c], cl = res[c];
         const old = kbState[ch];
@@ -237,28 +236,20 @@ function paint() {
     rows.forEach(tiles => tiles[state.hint].classList.add("hinted"));
   }
   document.getElementById("hintline").textContent =
-    "kelime #" + DAY_NO + " · " + (state.done ? (state.won ? "✔ buldun!" : "bugünkü kelimedeydin") : (6 - state.rows.length) + " deneme kaldı") + " · emoji ile paylaş 📋";
+    "kelime #" + DAY_NO + " · " + (state.done ? (state.won ? "✔ buldun!" : "bugünkü kelime: " + ANSWER.toUpperCase()) : (state.rows.length + 1) + ". denemedesin / try " + (state.rows.length + 1) + " of 6") + " · emoji ile paylaş 📋";
 }
-function activeRow() {
-  /* en son row daima aktif tampondur; 5 harf doluysa submit beklenir */
-  if (state.done) return -1;
-  return Math.max(0, state.rows.length - 1);
-}
+const kbState = {};
 function onKey(k) {
   if (state.done) return;
   if (k === "ENTER") return submitGuess();
   if (k === "HINT") return giveHint();
   if (k === "BACK") {
-    const r = activeRow(); if (r < 0) return;
-    const g = state.rows[r] || "";
-    if (g.length) { state.rows[r] = g.slice(0, -1); store.set(dayKey, state); paint(); }
+    if (state.buf.length) { state.buf = state.buf.slice(0, -1); store.set(dayKey, state); paint(); }
     return;
   }
   if (!/^[a-zçğıöşü]$/.test(k)) return;
-  const r = activeRow(); if (r < 0) return;
-  const g = state.rows[r] || "";
-  if (g.length >= 5) return; /* dolu — önce enter beklenir */
-  state.rows[r] = g + k;
+  if (state.buf.length >= 5) return;
+  state.buf += k;
   store.set(dayKey, state);
   paint();
 }
@@ -269,13 +260,15 @@ function shakeRow(r, msg) {
 }
 function submitGuess() {
   if (state.done) return;
-  const r = state.rows.length - 1;
-  const guess = state.rows[r] || "";
+  const guess = state.buf;
+  const r = state.rows.length;
   if (guess.length < 5) return shakeRow(r, "5 harf gerek / 5 letters needed");
   if (!WORDS.includes(guess)) return shakeRow(r, "Kelime listede değil / not in word list");
   const res = grade(guess, ANSWER);
+  state.rows.push(guess);
+  state.buf = "";
   if (guess === ANSWER) { state.done = true; state.won = true; }
-  else if (r === 5) { state.done = true; state.won = false; }
+  else if (state.rows.length === 6) { state.done = true; state.won = false; }
   /* istatistik (gün başına bir kez) */
   if (state.done && !store.get(dayKey + "_counted", false)) {
     store.set(dayKey + "_counted", true);
@@ -288,15 +281,11 @@ function submitGuess() {
     } else stats.streak = 0;
     store.set("stats", stats);
   }
-  if (!state.done) {
-    if (r === state.rows.length - 1) state.rows.push("");
-  }
   store.set(dayKey, state);
   /* reveal animasyonu */
-  const rr = r;
   let delay = 0;
   for (let c = 0; c < 5; c++) {
-    const t = rows[rr][c];
+    const t = rows[r][c];
     setTimeout(((tt, cl) => () => { tt.className = "tile reveal " + cl; })(t, res[c]), delay);
     delay += 300;
   }
@@ -314,9 +303,8 @@ function giveHint() {
 /* ----share & end screen ---- */
 const emojis = r => grade(state.rows[r], ANSWER).map(c => c === "correct" ? "🟩" : c === "present" ? "🟨" : "⬜").join("");
 function shareText() {
-  const done = state.rows.filter(g => g && g.length === 5);
-  return "kelimen #" + DAY_NO + " — " + (state.won ? done.length + "/6" : "X/6") + "\n\n" +
-    done.map(g => emojis(state.rows.indexOf(g))).join("\n") +
+  return "kelimen #" + DAY_NO + " — " + (state.won ? state.rows.length + "/6" : "X/6") + "\n\n" +
+    state.rows.map((_, i) => emojis(i)).join("\n") +
     "\n\nkelimen: 5 harf, günde bir kelime.\nby Ahmet Gedik — instagram.com/ahmetgedik67";
 }
 let stats = store.get("stats", { played: 0, wins: 0, streak: 0 });
@@ -328,8 +316,7 @@ function refreshStats() {
 function showEnd() {
   refreshStats();
   const grid = document.getElementById("shareGrid");
-  const done = state.rows.filter(g => g && g.length === 5);
-  grid.textContent = done.map(g => emojis(state.rows.indexOf(g))).join("\n");
+  grid.textContent = state.rows.map((_, i) => emojis(i)).join("\n");
   document.getElementById("resultLine").textContent = state.won
     ? "🎉 Doğru! " + state.rows.length + " denemede buldun. / correct!"
     : "😢 Bugünkü kelime: " + ANSWER.toUpperCase();
@@ -360,8 +347,7 @@ document.getElementById("btnHelp").onclick = () => document.getElementById("help
 document.getElementById("btnStats").onclick = () => {
   refreshStats();
   const grid = document.getElementById("shareGrid");
-  const done = state.rows.filter(g => g && g.length === 5);
-  grid.textContent = done.length ? done.map(g => emojis(state.rows.indexOf(g))).join("\n") : "🎯 oyna bakalım";
+  grid.textContent = state.rows.length ? state.rows.map((_, i) => emojis(i)).join("\n") : "🎯 oyna bakalım";
   document.getElementById("resultLine").textContent = state.done ? (state.won ? "🎉 buldun / solved" : "kelime: " + ANSWER.toUpperCase()) : "";
   document.getElementById("statsOverlay").classList.add("show");
 };
