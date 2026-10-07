@@ -39,8 +39,9 @@ anywhere. It even remembers your streak on your device only (localStorage).
 ### Features
 
 - **Daily mode** — the same hidden word for everyone, changes at midnight
-- One **hint per day** (💡 key reveals one letter)
-- Physical keyboard + on-screen Turkish Q keyboard (QWERTY layout with ĞÜŞİÖÇİ)
+- **⚔️ Challenge mode** — finish your game, tap *"Challenge a friend"*, and send the link: your friend gets **your word**, you get **their result as emoji squares**. The word is hidden in the URL (encoded, not readable), hints are disabled — full win or nothing.
+- One **hint per day** (💡 key reveals one letter) in daily mode
+- Physical keyboard + on-screen Turkish Q keyboard (QWERTY layout with ĞÜŞİÖÇ)
 - Emoji **share squares** — pastes into any chat; the answer word is never shown
 - Statistics: games played, win %, winning streak — stored only on your device
 - **Zero installs, zero accounts, zero servers, zero ads.** One file.
@@ -82,7 +83,8 @@ cihazında hatırlar (localStorage).
 ### Özellikler
 
 - **Günlük mod** — herkese aynı gizli kelime, gece yarısı değişir
-- Günde bir **ipucu** (💡 tuşu bir harfi açar)
+- **⚔️ Meydan okuma modu** — oyununu bitir, *"Arkadaşına meydan okuma gönder"*e bas, linki yolla: arkadaşın **senin kelimeni** oynar, sana **sonucunu emoji karesiyle** gönderir. Kelime linkte gizli (kodlanmış, okunamaz), ipuçları kapalı — tam kazanç ya da hiç.
+- Günde bir **ipucu** (💡 tuşu bir harfi açar) — günlük modda
 - Fiziksel klavye + ekran üzerinde Türkçe Q klavye (ĞÜŞİÖÇ dahil)
 - Emoji **paylaşım karesi** — her sohbete yapıştırılır; cevap kelimesi asla görünmez
 - İstatistik: oynanan, % kazanma, seri — sadece cihazında saklanır
