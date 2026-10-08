@@ -39,6 +39,7 @@ anywhere. It even remembers your streak on your device only (localStorage).
 ### Features
 
 - **Daily mode** — the same hidden word for everyone, changes at midnight
+- **Difficulty rating** — every day shows 🟢 easy / 🟡 medium / 🔴 hard so you know what's coming
 - **⚔️ Challenge mode** — finish your game, tap *"Challenge a friend"*, and send the link: your friend gets **your word**, you get **their result as emoji squares**. The word is hidden in the URL (encoded, not readable), hints are disabled — full win or nothing.
 - One **hint per day** (💡 key reveals one letter) in daily mode
 - Physical keyboard + on-screen Turkish Q keyboard (QWERTY layout with ĞÜŞİÖÇ)
@@ -60,8 +61,9 @@ browser. Nothing is ever uploaded.
 ### FAQ
 
 **How is the daily word chosen?** Deterministically from the day number
-(same for every player, no server needed). List: 371 curated common Turkish
-5-letter words.
+(same for every player, no server needed). List: **1079 curated Turkish
+5-letter words**, each tagged with a difficulty (🟢 easy / 🟡 medium / 🔴 hard)
+shown next to the puzzle number.
 
 **Can I play yesterday's words?** Not in this version — that's the point of a daily game. 🙂
 
@@ -83,6 +85,7 @@ cihazında hatırlar (localStorage).
 ### Özellikler
 
 - **Günlük mod** — herkese aynı gizli kelime, gece yarısı değişir
+- **Zorluk derecesi** — her gün 🟢 kolay / 🟡 orta / 🔴 zor etiketi: neler geleceğini bil
 - **⚔️ Meydan okuma modu** — oyununu bitir, *"Arkadaşına meydan okuma gönder"*e bas, linki yolla: arkadaşın **senin kelimeni** oynar, sana **sonucunu emoji karesiyle** gönderir. Kelime linkte gizli (kodlanmış, okunamaz), ipuçları kapalı — tam kazanç ya da hiç.
 - Günde bir **ipucu** (💡 tuşu bir harfi açar) — günlük modda
 - Fiziksel klavye + ekran üzerinde Türkçe Q klavye (ĞÜŞİÖÇ dahil)
@@ -104,8 +107,9 @@ herhangi bir tarayıcıda aç. Hiçbir şey yüklenmez.
 ### SSS
 
 **Günlük kelime nasıl seçiliyor?** Gün numarasından deterministik olarak
-(herkes için aynı, sunucu gerekmez). Liste: 371 adet özenle seçilmiş yaygın
-Türkçe 5 harfli kelime.
+(herkes için aynı, sunucu gerekmez). Liste: **1079 adet özenle seçilmiş Türkçe
+5 harfli kelime**, her biri zorluk derecesiyle (🟢 kolay / 🟡 orta / 🔴 zor) —
+bulmaca numarasının yanında gösterilir.
 
 **Dünkü kelimeleri oynayabilir miyim?** Bu sürümde hayır — günlük oyunun
 felsefesi bu. 🙂
